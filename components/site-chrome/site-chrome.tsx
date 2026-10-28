@@ -13,7 +13,12 @@ type SiteChromeProps = {
 export function SiteChrome({ children }: SiteChromeProps) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isStudio = pathname.startsWith("/studio");
   const overlay = pathname === "/" || pathname === "/lets-talk";
+
+  if (isStudio) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex min-h-full flex-1 flex-col">

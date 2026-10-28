@@ -4,7 +4,7 @@ type PropertyCardProps = {
   name: string;
   type: string;
   status?: string;
-  image: StaticImageData;
+  image: StaticImageData | string;
   href?: string;
   offset?: "up" | "down";
 };

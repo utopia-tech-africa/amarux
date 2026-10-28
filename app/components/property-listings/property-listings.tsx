@@ -1,33 +1,85 @@
 import Link from "next/link";
+import type { StaticImageData } from "next/image";
 import { PROPERTY_IMAGES } from "@/assets/img";
 import { ArrowSquareUpRightIcon } from "@/assets/svg";
 import { Container } from "@/components/container";
+import {
+  client,
+  hasSanityConfig,
+  propertiesQuery,
+  propertyImageUrl,
+  type SanityProperty,
+} from "@/lib/sanity";
 import { PropertyCard } from "./property-card";
 
-const PROPERTIES = [
+type ListingProperty = {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  href: string;
+  image: StaticImageData | string;
+};
+
+/** Original homepage listings kept for reference — not used as a runtime fallback. */
+export const HARDCODED_PROPERTIES: ListingProperty[] = [
   {
+    id: "ridgemanuel",
     name: "Ridgemanuel Estates",
     type: "2 bedroom flat",
+    status: "Available",
+    href: "#",
     image: PROPERTY_IMAGES.ridgemanuel,
   },
   {
+    id: "lakeside",
     name: "Lakeside estate",
     type: "5 bedroom house",
+    status: "Available",
+    href: "#",
     image: PROPERTY_IMAGES.lakeside,
   },
   {
+    id: "accra-mall",
     name: "Accra mall",
     type: "retail space",
+    status: "Available",
+    href: "#",
     image: PROPERTY_IMAGES.accraMall,
   },
   {
+    id: "buro",
     name: "Buro",
     type: "Office space",
+    status: "Available",
+    href: "#",
     image: PROPERTY_IMAGES.buro,
   },
-] as const;
+];
 
-export function PropertyListings() {
+async function getProperties(): Promise<ListingProperty[]> {
+  if (!hasSanityConfig || !client) {
+    return [];
+  }
+
+  const properties = await client.fetch<SanityProperty[]>(propertiesQuery);
+
+  return properties.map((property) => ({
+    id: property._id,
+    name: property.name,
+    type: property.type,
+    status: property.status || "Available",
+    href: property.href || "#",
+    image:
+      property.imageUrl ||
+      (property.image ? propertyImageUrl(property.image) : "") ||
+      "",
+  }));
+}
+
+export async function PropertyListings() {
+  const properties = await getProperties();
+
   return (
     <section
       id="properties"
@@ -57,10 +109,14 @@ export function PropertyListings() {
 
         <div className="-mx-[var(--page-gutter)] overflow-x-auto px-[var(--page-gutter)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <ul className="flex w-max items-start gap-6 py-5 md:gap-8 md:py-10">
-            {PROPERTIES.map((property, index) => (
-              <li key={property.name}>
+            {properties.map((property, index) => (
+              <li key={property.id}>
                 <PropertyCard
-                  {...property}
+                  name={property.name}
+                  type={property.type}
+                  status={property.status}
+                  image={property.image}
+                  href={property.href}
                   offset={index % 2 === 0 ? "up" : "down"}
                 />
               </li>
